@@ -1,0 +1,28 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: metallb-operator
+spec:
+  generators:
+  # https://argo-cd.readthedocs.io/en/latest/operator-manual/applicationset/Generators-Cluster-Decision-Resource/
+  - clusterDecisionResource:
+      configMapRef: acm-placement
+      requeueAfterSeconds: 30
+      name: baremetal-clusters-decision-1
+  template:
+    metadata:
+      name: "metallb-operator-{{name}}"
+    spec:
+      project: default
+      destination:
+        namespace: metallb-system
+        name: "{{ name }}"
+      sources:
+      - repoURL: https://github.com/larsks/hypershift-apps
+        targetRevision: HEAD
+        path: "metallb-operator/base"
+      syncPolicy:
+        automated:
+          selfHeal: true
+        syncOptions:
+        - CreateNamespace=true

@@ -1,0 +1,28 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: baremetal-ingress-config
+spec:
+  generators:
+  # https://argo-cd.readthedocs.io/en/latest/operator-manual/applicationset/Generators-Cluster-Decision-Resource/
+  - clusterDecisionResource:
+      configMapRef: acm-placement
+      requeueAfterSeconds: 30
+      name: baremetal-clusters-decision-1
+  template:
+    metadata:
+      name: "baremetal-ingress-config-{{name}}"
+    spec:
+      project: default
+      destination:
+        namespace: openshift-ingress
+        name: "{{ name }}"
+      sources:
+      - repoURL: https://github.com/larsks/hypershift-apps
+        targetRevision: HEAD
+        path: "baremetal-ingress-config/base"
+      syncPolicy:
+        automated:
+          selfHeal: true
+        syncOptions:
+        - CreateNamespace=true
